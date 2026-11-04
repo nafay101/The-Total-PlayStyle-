@@ -1,14 +1,25 @@
 import datetime as dt
 
 import pandas as pd
+import glob
+
 import streamlit as st
+import streamlit.components.v1 as components
 
 import content as C
 
 st.set_page_config(page_title="Football IQ & Performance Academy", page_icon="⚽", layout="wide")
 st.markdown("""<style>
-h1,h2,h3{letter-spacing:-.01em;color:#052e16}
-.card{border:2px solid #14532d;border-radius:12px;padding:1rem;background:#f0fdf4;color:#052e16;margin-bottom:.6rem}
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&display=swap');
+.block-container{max-width:1100px;padding:2.5rem 2rem 4rem}
+[data-testid="stVerticalBlock"]{gap:1.4rem}
+p,li{line-height:1.8;font-size:1.03rem}
+h1,h2,h3,h4{font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.03em}
+.lead{font-size:1.2rem;opacity:.9}
+.hero{display:flex;gap:2rem;align-items:center;flex-wrap:wrap;background:linear-gradient(135deg,#052e16,#15803d);
+ border-radius:20px;padding:2.2rem 2.6rem;color:#fff}
+.hero>div{flex:1 1 300px}.hero h1{color:#fff;font-size:3rem;line-height:1.05;margin:.3rem 0 1rem}
+.eyebrow{color:#bbf7d0;letter-spacing:.25em;font-weight:700;font-size:.8rem}
 </style>""", unsafe_allow_html=True)
 
 PAGES = ["Home", "Football basics", "Skills and techniques", "Positions and numbers", "Fitness and recovery",
@@ -18,6 +29,7 @@ ALL_ITEMS = C.LESSONS + C.EXERCISES
 
 def go(page):
     st.session_state.page = page
+    st.session_state.collapse = True
 
 
 # ---------- Supabase / demo ----------
@@ -83,28 +95,40 @@ def save_row(row):
 
 # ---------- components ----------
 def render_item(it):
-    st.markdown(f"### {it['title']}")
-    st.caption(it["category"])
-    c1, c2 = st.columns([1, 1])
-    with c1:
-        st.markdown(f"**Purpose:** {it['purpose']}")
-        if "equipment" in it:
-            st.markdown(f"**Equipment:** {it['equipment']}")
-        st.markdown(f"**Setup:** {it['setup']}")
-        st.markdown("**Steps**\n" + "\n".join(f"{i}. {s}" for i, s in enumerate(it["steps"], 1)))
-        if "dose" in it:
-            st.markdown(f"**Sets/reps/rest:** {it['dose']}")
-    with c2:
-        st.markdown("**Coaching cues**\n" + "\n".join(f"- {s}" for s in it["cues"]))
-        st.markdown("**Common mistakes**\n" + "\n".join(f"- {s}" for s in it["mistakes"]))
-        st.markdown(f"**Progress:** {it['progress']}")
-        st.markdown(f"**Simplify:** {it['simplify']}")
-    st.markdown("**Visual steps**")
-    cols = st.columns(3)
-    for i, (lab, cap, img) in enumerate(it["frames"]):
-        with cols[i % 3]:
-            st.markdown(img, unsafe_allow_html=True)
-            st.caption(f"{lab}: {cap}")
+    with st.container(border=True):
+        st.markdown(f"## {it['title']}")
+        st.caption(it["category"].upper())
+        st.markdown(f"<p class='lead'>{it['purpose']}</p>", unsafe_allow_html=True)
+        photos = sorted(glob.glob(f"assets/{it['id']}_*"))
+        st.markdown("#### Technique, step by step")
+        cols = st.columns(3, gap="large")
+        for i, (lab, cap, img) in enumerate(it["frames"]):
+            with cols[i % 3]:
+                with st.container(border=True):
+                    if i < len(photos):
+                        st.image(photos[i], use_container_width=True)
+                    else:
+                        st.markdown(img, unsafe_allow_html=True)
+                    st.markdown(f"**{lab}**")
+                    st.write(cap)
+        st.divider()
+        c1, c2 = st.columns(2, gap="large")
+        with c1:
+            st.markdown("#### Setup")
+            if "equipment" in it:
+                st.write(f"Equipment: {it['equipment']}")
+            st.write(it["setup"])
+            st.markdown("#### Steps")
+            st.markdown("\n".join(f"{i}. {s}" for i, s in enumerate(it["steps"], 1)))
+            if "dose" in it:
+                st.markdown(f"**Sets/reps/rest:** {it['dose']}")
+        with c2:
+            st.markdown("#### Coaching cues")
+            st.markdown("\n".join(f"- {s}" for s in it["cues"]))
+            st.markdown("#### Common mistakes")
+            st.markdown("\n".join(f"- {s}" for s in it["mistakes"]))
+            st.markdown(f"**Harder:** {it['progress']}")
+            st.markdown(f"**Easier:** {it['simplify']}")
 
 
 def pitch_formation(pts):
@@ -114,7 +138,7 @@ def pitch_formation(pts):
 
 # ---------- pages ----------
 def home():
-    st.title("Football IQ & Performance Academy")
+    st.markdown("<div class='hero'><div><p class='eyebrow'>TRAIN LIKE A PROFESSIONAL</p><h1>Football IQ & Performance Academy</h1><p>Learn the game, master technique, follow structured training and track every session.</p></div><div>" + C.coach_svg() + "</div></div>", unsafe_allow_html=True)
     rows = load_rows()
     week = [r for r in rows if r["date"] >= str(dt.date.today() - dt.timedelta(days=7))]
     c = st.columns(3)
@@ -276,7 +300,12 @@ def ask():
 
 
 sidebar_auth()
-st.sidebar.radio("Navigate", PAGES, key="page")
+st.sidebar.radio("Navigate", PAGES, key="page", on_change=lambda: st.session_state.update(collapse=True))
 {"Home": home, "Football basics": basics, "Skills and techniques": skills,
  "Positions and numbers": positions, "Fitness and recovery": fitness, "Tactics": tactics,
  "Roadmap": roadmap, "Progress": progress, "Ask a question": ask}[st.session_state.page]()
+
+if st.session_state.pop("collapse", False):
+    components.html("""<script>const d=window.parent.document;
+for(const s of ['[data-testid="stSidebarCollapseButton"] button','[data-testid="stSidebar"] button[kind="header"]','[data-testid="stSidebarCollapseButton"]']){const b=d.querySelector(s);if(b){b.click();break;}}
+</script>""", height=0)
