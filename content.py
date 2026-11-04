@@ -36,6 +36,49 @@ def frames(items):
     return [(lab, cap, svg(inner, lab)) for lab, cap, inner in items]
 
 
+
+def Z(h, s, p, e1, w1, e2, w2, k1, f1, k2, f2):
+    return dict(h=h, s=s, p=p, e1=e1, w1=w1, e2=e2, w2=w2, k1=k1, f1=f1, k2=k2, f2=f2)
+
+
+def fig(g, kit="#1d4ed8", skin="#e0ac69"):
+    def ln(a, b, w, col, o=1):
+        return (f'<line x1="{g[a][0]}" y1="{g[a][1]}" x2="{g[b][0]}" y2="{g[b][1]}" stroke="{col}" '
+                f'stroke-width="{w}" stroke-linecap="round" opacity="{o}"/>')
+
+    def arm(i, o):
+        return (ln("s", "e" + i, 11, kit, o) + ln("e" + i, "w" + i, 8, skin, o)
+                + f'<circle cx="{g["w"+i][0]}" cy="{g["w"+i][1]}" r="5" fill="{skin}" opacity="{o}"/>')
+
+    def leg(i, o):
+        x, y = g["f" + i]
+        return (ln("p", "k" + i, 17, "#0f172a", o) + ln("k" + i, "f" + i, 11, skin, o)
+                + f'<ellipse cx="{x+5}" cy="{y}" rx="10" ry="5" fill="#111"/>')
+    hx, hy = g["h"]
+    head = (f'<circle cx="{hx}" cy="{hy}" r="13" fill="{skin}"/>'
+            f'<path d="M{hx-13},{hy} A13,13 0 0 1 {hx+13},{hy} Z" fill="#2b1b12"/>')
+    return arm("1", .8) + leg("1", .8) + ln("s", "p", 24, kit) + ln("h", "s", 8, skin) + leg("2", 1) + arm("2", 1) + head
+
+
+def scene(inner, label, goal=False):
+    gl = '<rect x="318" y="138" width="32" height="67" fill="none" stroke="#fff" stroke-width="3"/>' if goal else ""
+    return (f'<svg viewBox="0 0 360 240" role="img" aria-label="{label}" style="width:100%;border-radius:10px">{ARROW}'
+            f'<rect width="360" height="240" fill="#0f3d24"/><rect y="205" width="360" height="35" fill="#166534"/>{gl}{inner}'
+            f'<rect x="10" y="10" width="190" height="26" rx="6" fill="#000" opacity=".55"/>'
+            f'<text x="18" y="28" fill="#fff" font-size="14" font-weight="700">{label}</text></svg>')
+
+
+def sframes(items):
+    return [(lab, cap, scene(inner, lab, goal)) for lab, cap, inner, goal in items]
+
+
+def coach_svg():
+    g = Z((100, 44), (100, 72), (98, 128), (80, 98), (66, 118), (122, 84), (150, 66), (92, 168), (88, 204), (106, 168), (112, 204))
+    cones = "".join(f'<polygon points="{x},{y} {x-9},{y+16} {x+9},{y+16}" fill="#f97316"/>' for x, y in ((190, 190), (215, 190), (240, 190)))
+    ball = '<circle cx="56" cy="128" r="11" fill="#fff" stroke="#111" stroke-width="2"/>'
+    return (f'<svg viewBox="0 0 270 215" style="width:100%;max-width:300px">{ARROW}'
+            f'<rect y="205" width="270" height="10" fill="#166534" rx="4"/>{fig(g, "#047857")}{ball}{cones}</svg>')
+
 MATE = lambda x, y: P(x, y, "Mate", "#f97316")
 
 LESSONS = [
@@ -118,13 +161,13 @@ COOLDOWN = ["Easy walk", "Gentle calf, hamstring and hip flexor stretches", "Hyd
 
 BASICS = [
     {"title": "Offside", "text": "A player is in an offside position if any scoring part of their head, body or feet is nearer the opponents' goal line than both the ball and the second-last opponent. It is only an offence if they become involved in active play. There is no offside from a goal kick, throw-in or corner.",
-     "ref": "https://www.theifab.com/laws-of-the-game"},
+     "ref": "https://www.theifab.com"},
     {"title": "Throw-in", "text": "Awarded when the whole ball crosses the touchline. Thrown with both hands from behind and over the head, with part of each foot on the line or ground outside it. You cannot score directly.",
-     "ref": "https://www.theifab.com/laws-of-the-game"},
+     "ref": "https://www.theifab.com"},
     {"title": "Corners and goal kicks", "text": "If the attackers last touch the ball before it crosses the goal line outside the goal, it is a goal kick. If a defender touches it last, it is a corner kick.",
-     "ref": "https://www.theifab.com/laws-of-the-game"},
+     "ref": "https://www.theifab.com"},
     {"title": "Fouls, free kicks and cards", "text": "Careless, reckless or excessive-force challenges are fouls. A yellow card is a caution; a red card is a sending-off. Direct and indirect free kicks differ in whether a goal can be scored without another touch.",
-     "ref": "https://www.theifab.com/laws-of-the-game"},
+     "ref": "https://www.theifab.com"},
 ]
 
 POSITIONS = [
@@ -158,7 +201,42 @@ STYLES = {"Possession play": "Keep the ball to control tempo.", "Counterattackin
           "High pressing": "Win the ball high up the pitch.", "Low block": "Defend deep and compact.",
           "Direct play": "Play forward quickly, often long.", "Wing overloads": "Outnumber opponents on one flank."}
 
-SOURCES = {"Laws of the Game (IFAB)": "https://www.theifab.com/laws-of-the-game"}
+SOURCES = {"Laws of the Game (IFAB)": "https://www.theifab.com"}
 HEALTH_NOTE = ("General training information only. Not medical advice. Stop if an exercise causes pain. "
                "Injury rehabilitation should be guided by a qualified clinician. Injury-prevention programmes such as FIFA 11+ "
                "are published by FIFA; check their official site for details.")
+
+
+LESSONS.append({"id": "shoot-instep", "title": "Instep shooting: the power drive", "category": "Shooting",
+    "positions": ["Centre-forward", "Winger", "Central midfielder"],
+    "purpose": "Strike the ball hard and on target using the laces (instep), the standard technique for power shots.",
+    "setup": "Place balls at the edge of the box facing a goal. Place a cone 2 m from each post as accuracy targets. Take 5 shots to each side.",
+    "steps": ["Pick your target before the ball arrives.", "Approach at a slight angle, last stride longer.",
+              "Plant the standing foot beside the ball, toes at the target.",
+              "Lock the ankle and strike the middle of the ball with the laces, head steady over it.",
+              "Swing through and land on the kicking foot."],
+    "cues": ["Head down and still at contact", "Lock the ankle, toes pointed down", "Knee over the ball keeps the shot low"],
+    "mistakes": ["Leaning back, which sends the ball over the bar", "Standing foot too far behind the ball", "Floppy ankle"],
+    "progress": "Add a passive defender, a one-touch finish from a pass, then a time limit of 3 seconds.",
+    "simplify": "Strike a stationary ball from 10 m with no run-up.",
+    "frames": sframes([
+        ("1 Setup", "Square up, eyes on the target.", fig(Z((70,55),(72,80),(70,130),(60,105),(55,128),(82,105),(88,125),(66,168),(64,200),(76,168),(78,200))) + B(150,198) + A(165,190,310,175), True),
+        ("2 Approach", "Lean forward, longer final stride.", fig(Z((85,58),(85,82),(78,130),(68,100),(55,118),(100,98),(118,112),(62,165),(40,195),(100,160),(112,200))) + B(175,198), True),
+        ("3 Plant", "Standing foot beside the ball; kicking leg swings back.", fig(Z((100,56),(98,80),(92,130),(80,98),(60,92),(115,98),(135,105),(84,165),(52,175),(100,168),(112,200))) + B(145,198) + N(90,224, "Plant foot"), True),
+        ("4 Contact", "Laces through the middle of the ball, head steady.", fig(Z((118,56),(114,80),(110,128),(96,100),(80,90),(128,98),(146,108),(124,168),(128,200),(140,160),(152,196))) + B(165,196) + A(175,190,310,170) + N(130,224, "Laces on ball"), True),
+        ("5 Follow-through", "Leg swings through; ball travels to the target.", fig(Z((132,58),(126,80),(120,128),(106,98),(90,110),(144,100),(158,112),(118,168),(118,200),(160,140),(190,128))) + B(262,150) + A(272,146,312,160), True),
+    ])})
+
+_bridge_top = Z((38,186),(62,184),(128,150),(85,195),(108,197),(85,195),(108,197),(170,146),(192,198),(174,148),(196,198))
+_bridge_low = Z((38,186),(62,190),(128,190),(85,195),(108,197),(85,195),(108,197),(168,150),(192,198),(172,152),(196,198))
+EXERCISES[0]["frames"] = sframes([
+    ("1 Start", "Back flat, knees bent, feet flat.", fig(_bridge_low), False),
+    ("2 Lift", "Press through the heels, lift hips.", fig(_bridge_top) + A(128,185,128,160), False),
+    ("3 Hold", "Straight line from shoulders to knees; squeeze.", fig(_bridge_top) + N(95,225, "Hold 2 seconds"), False),
+    ("4 Lower", "Lower slowly under control.", fig(_bridge_low) + A(128,160,128,185), False)])
+_pk = Z((246,150),(222,166),(140,176),(214,198),(242,198),(214,198),(242,198),(100,186),(62,198),(104,186),(66,198))
+_pk2 = Z((246,150),(222,166),(140,176),(214,198),(242,198),(214,198),(242,198),(180,190),(150,198),(184,190),(154,198))
+EXERCISES[1]["frames"] = sframes([
+    ("1 Setup", "Forearms down, elbows under shoulders.", fig(_pk2), False),
+    ("2 Lift", "Lift the knees off the floor.", fig(_pk), False),
+    ("3 Hold", "Straight line head to heels; breathe.", fig(_pk) + N(110,225, "No sagging hips"), False)])
