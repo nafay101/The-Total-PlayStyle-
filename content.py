@@ -240,3 +240,92 @@ EXERCISES[1]["frames"] = sframes([
     ("1 Setup", "Forearms down, elbows under shoulders.", fig(_pk2), False),
     ("2 Lift", "Lift the knees off the floor.", fig(_pk), False),
     ("3 Hold", "Straight line head to heels; breathe.", fig(_pk) + N(110,225, "No sagging hips"), False)])
+
+
+# ---------- Basics diagrams ----------
+def _off(att, passer, ball, tgt, tag, tx):
+    line = '<line x1="250" y1="40" x2="250" y2="200" stroke="#fde047" stroke-width="2" stroke-dasharray="5 4"/>'
+    d = P(250, 70, "D", "#dc2626") + P(250, 150, "D", "#dc2626") + P(335, 110, "GK", "#dc2626")
+    return (line + d + P(att[0], att[1], "A") + P(passer[0], passer[1], "P", "#2563eb") + B(*ball)
+            + A(ball[0] + 8, ball[1] - 2, tgt[0], tgt[1]) + N(tx, 196, tag) + N(200, 36, "Second-last defender line"))
+
+
+_od = [("Offside: the attacker is nearer the goal line than the ball and the second-last defender when the pass is played.",
+        svg(_off((290, 110), (140, 150), (156, 150), (278, 116), "OFFSIDE", 20), "Offside")),
+       ("Onside: level with the second-last defender is not offside.",
+        svg(_off((250, 110), (140, 150), (156, 150), (240, 116), "ONSIDE (level)", 20), "Onside, level")),
+       ("Onside: beyond the defenders but behind the ball. Teammates ahead of the ball are only offside if they are past it.",
+        svg(_off((272, 110), (298, 175), (310, 168), (282, 120), "ONSIDE (behind the ball)", 20), "Onside, behind ball"))]
+_ti = svg(P(180, 24, "Thrower") + B(180, 8) + A(188, 38, 232, 108) + P(238, 122, "Mate", "#f97316")
+          + N(20, 208, "Both feet on or behind the line"), "Throw-in")
+for _b in BASICS:
+    if _b["title"] == "Offside":
+        _b["diagrams"] = _od
+    if _b["title"] == "Throw-in":
+        _b["diagrams"] = [("Ball over the head, both hands, both feet on the ground.", _ti)]
+
+# ---------- Exercise graphics ----------
+def gscene(inner, label, hl=()):
+    glow = "".join(f'<ellipse cx="{x}" cy="{y}" rx="{rx}" ry="{ry}" fill="#f97316" opacity=".5"/>' for x, y, rx, ry in hl)
+    return (f'<svg viewBox="0 0 360 240" role="img" aria-label="{label}" style="width:100%;border-radius:10px">{ARROW}'
+            f'<rect width="360" height="240" fill="#1e293b"/><rect y="205" width="360" height="35" fill="#334155"/>{glow}{inner}'
+            f'<rect x="10" y="10" width="190" height="26" rx="6" fill="#000" opacity=".55"/>'
+            f'<text x="18" y="28" fill="#fff" font-size="14" font-weight="700">{label}</text>'
+            f'<text x="350" y="228" fill="#fdba74" font-size="11" text-anchor="end">Orange glow = working muscles</text></svg>')
+
+
+def gframes(items):
+    return [(lab, cap, gscene(inner, lab, hl)) for lab, cap, inner, hl in items]
+
+
+STAND = Z((150,48),(150,74),(150,126),(140,100),(138,126),(160,100),(162,126),(147,166),(146,200),(153,166),(154,200))
+SQ = Z((165,72),(155,98),(125,150),(180,98),(205,96),(182,100),(206,98),(178,152),(165,200),(180,152),(168,200))
+LU = Z((152,74),(152,100),(150,150),(135,105),(148,126),(165,105),(153,126),(120,182),(95,197),(185,150),(180,200))
+CR = Z((150,36),(150,62),(150,114),(140,88),(138,114),(160,88),(162,114),(147,154),(146,190),(153,154),(154,190))
+PU1 = Z((246,140),(222,152),(140,172),(221,176),(220,200),(221,176),(220,200),(100,186),(62,198),(104,186),(66,198))
+PU2 = Z((250,176),(226,184),(140,190),(196,196),(222,200),(196,196),(222,200),(100,194),(62,199),(104,194),(66,199))
+SL = Z((150,48),(150,74),(150,126),(130,92),(110,98),(170,92),(190,98),(138,160),(118,178),(152,166),(153,200))
+_ex = lambda i, t, cat, pur, eq, setup, steps, dose, cues, mist, prog, simp, fr: {
+    "id": i, "title": t, "category": cat, "positions": ["all"], "purpose": pur, "equipment": eq, "setup": setup,
+    "steps": steps, "dose": dose, "cues": cues, "mistakes": mist, "progress": prog, "simplify": simp, "frames": fr}
+EXERCISES[0]["frames"] = gframes([
+    ("1 Start", "Back flat, knees bent, feet flat.", fig(_bridge_low), []),
+    ("2 Lift", "Press through the heels, lift hips.", fig(_bridge_top) + A(128,185,128,158), [(128,160,35,18)]),
+    ("3 Hold", "Straight line shoulders to knees; squeeze.", fig(_bridge_top) + N(95,226,"Hold 2 seconds"), [(128,160,35,18)]),
+    ("4 Lower", "Lower slowly under control.", fig(_bridge_low) + A(128,158,128,185), [])])
+EXERCISES[1]["frames"] = gframes([
+    ("1 Setup", "Forearms down, knees on the floor.", fig(_pk2), []),
+    ("2 Lift", "Lift the knees off the floor.", fig(_pk), [(180,176,50,16)]),
+    ("3 Hold", "Straight line head to heels; breathe.", fig(_pk) + N(110,226,"No sagging hips"), [(180,176,50,16)])])
+EXERCISES += [
+    _ex("squat", "Bodyweight squat", "Legs", "Build leg strength for jumping, sprinting and shielding.", "None",
+        "Feet shoulder-width, toes slightly out.", ["Brace your core.", "Sit hips back and down.", "Thighs parallel to the floor, knees over toes.", "Drive through the feet to stand."],
+        "3 x 10-12, rest 60 s", ["Chest up", "Knees track over toes"], ["Knees caving in", "Heels lifting"],
+        "Jump squat or single-leg box squat.", "Squat to a chair.",
+        gframes([("1 Start", "Stand tall, arms forward.", fig(STAND), []), ("2 Bottom", "Hips back, thighs parallel.", fig(SQ) + A(150,70,150,110), [(150,150,38,20)]),
+                 ("3 Stand", "Drive up through the whole foot.", fig(STAND) + A(150,120,150,70), [(150,150,30,24)])])),
+    _ex("reverse-lunge", "Reverse lunge", "Glutes / legs", "Train single-leg strength and balance used in every stride.", "None",
+        "Stand tall, hands on hips.", ["Step one foot back.", "Lower until both knees are about 90 degrees.", "Push through the front heel to return.", "Alternate legs."],
+        "3 x 8 per leg, rest 60 s", ["Torso upright", "Front knee over ankle"], ["Short step", "Front heel lifting"],
+        "Hold dumbbells.", "Hold a wall for balance.",
+        gframes([("1 Start", "Feet together, tall posture.", fig(STAND), []), ("2 Step back", "Back knee drops towards floor.", fig(LU) + A(140,120,100,170), [(150,160,40,24)]),
+                 ("3 Return", "Push through the front heel.", fig(STAND) + A(150,120,150,70), [(150,160,30,24)])])),
+    _ex("calf-raise", "Calf raise", "Calves", "Strengthen calves for push-off and ankle stability.", "A step (optional)",
+        "Stand with feet hip-width.", ["Rise onto the balls of the feet.", "Pause 1 second at the top.", "Lower slowly."],
+        "3 x 15, rest 45 s", ["Straight knees", "Slow lowering"], ["Bouncing", "Rolling the ankles outward"],
+        "Single-leg raise.", "Hold a wall.",
+        gframes([("1 Start", "Flat feet, tall.", fig(STAND), []), ("2 Rise", "Up onto the toes.", fig(CR) + A(150,120,150,80), [(147,172,10,22)]),
+                 ("3 Lower", "Control the descent.", fig(STAND) + A(150,80,150,120), [(147,175,10,22)])])),
+    _ex("push-up", "Push-up", "Upper body", "Upper-body strength for shielding and duels.", "Mat",
+        "Hands under shoulders, body in a straight line.", ["Brace core and glutes.", "Lower the chest to a fist above the floor.", "Press back up to straight arms."],
+        "3 x 8-12, rest 60 s", ["Elbows about 45 degrees", "Straight line head to heels"], ["Hips sagging", "Flaring the elbows"],
+        "Feet raised.", "Hands on a bench or knees down.",
+        gframes([("1 Start", "High plank.", fig(PU1), [(215,170,22,22)]), ("2 Lower", "Chest towards the floor.", fig(PU2) + A(230,160,230,185), [(215,186,22,16)]),
+                 ("3 Press", "Straight arms again.", fig(PU1) + A(230,185,230,160), [(215,170,22,22)])])),
+    _ex("single-leg-balance", "Single-leg balance", "Balance", "Improve ankle and hip control for turning and landing.", "None",
+        "Stand on one leg, arms out for balance.", ["Lift one foot behind you.", "Keep hips level.", "Hold, then switch legs."],
+        "3 x 30 s per leg, rest 30 s", ["Eyes on a fixed point", "Soft knee"], ["Hips dropping", "Holding your breath"],
+        "Close your eyes or stand on a cushion.", "Lightly touch a wall.",
+        gframes([("1 Setup", "Feet together, arms out.", fig(STAND), []), ("2 Lift", "Lift one foot behind.", fig(SL), [(153,175,12,28)]),
+                 ("3 Hold", "Keep still and level.", fig(SL) + N(100,226,"Hold 30 seconds"), [(153,175,12,28)])])),
+]
