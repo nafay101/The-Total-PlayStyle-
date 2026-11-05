@@ -158,11 +158,16 @@ def home():
 
 def basics():
     st.title("Football basics")
-    st.markdown(C.svg(C.P(60, 110, "GK") + C.B(180, 110) + C.A(190, 110, 300, 110) + C.N(120, 190, "Attacking direction"), "The pitch"),
-                unsafe_allow_html=True)
     for b in C.BASICS:
-        with st.expander(b["title"], expanded=False):
+        with st.expander(b["title"], expanded=b["title"] == "Offside"):
             st.write(b["text"])
+            ds = b.get("diagrams", [])
+            if ds:
+                cols = st.columns(len(ds), gap="large")
+                for col, (cap, img) in zip(cols, ds):
+                    with col:
+                        st.markdown(img, unsafe_allow_html=True)
+                        st.write(cap)
             st.markdown(f"[IFAB reference]({b['ref']})")
 
 
@@ -239,13 +244,13 @@ def roadmap():
         else:
             st.session_state.plan_args = (level, pos, days, minutes)
             st.session_state.offset = 0
-            st.session_state.plan = build_plan(level, pos, days, minutes, 0)
-    if "plan" in st.session_state:
+            st.session_state.plan_df = build_plan(level, pos, days, minutes, 0)
+    if "plan_df" in st.session_state:
         if st.button("Regenerate with different drills"):
             st.session_state.offset += 1
-            st.session_state.plan = build_plan(*st.session_state.plan_args, st.session_state.offset)
+            st.session_state.plan_df = build_plan(*st.session_state.plan_args, st.session_state.offset)
         st.caption("Plans use only the drills in the library. Edit cells below if needed. Progression: each week repeat and add quality (more reps, pressure).")
-        st.session_state.plan = st.data_editor(st.session_state.plan, hide_index=True, use_container_width=True)
+        st.session_state.plan_df = st.data_editor(st.session_state.plan_df, hide_index=True, use_container_width=True)
     else:
         st.info("Fill in the form to generate a 4-week plan.")
 
